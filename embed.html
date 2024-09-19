@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PC Builder Game</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+        }
+        .logo {
+            width: 150px;
+            margin: 10px auto;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 20px auto;
+        }
+        .store, .inventory, .build-area {
+            border-radius: 10px;
+            background-color: white;
+            padding: 20px;
+            width: 30%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+        }
+        h2 {
+            margin-top: 0;
+            font-size: 1.5em;
+            color: #4CAF50;
+        }
+        .item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f4f4f9;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            border: 1px solid #ddd;
+        }
+        .item:hover {
+            background-color: #e0e0e0;
+        }
+        .build-slot {
+            width: 100%;
+            height: 120px;
+            border: 2px dashed #ccc;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            font-size: 1.1em;
+            transition: border-color 0.3s ease;
+        }
+        .build-slot[data-slot="cpu"]:hover {
+            border-color: #ff9800;
+        }
+        .build-slot[data-slot="gpu"]:hover {
+            border-color: #3f51b5;
+        }
+        .build-slot[data-slot="ram"]:hover {
+            border-color: #8bc34a;
+        }
+        .total-cost {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 20px;
+            color: #333;
+        }
+        .total-cost span {
+            color: #4CAF50;
+        }
+        /* Added reset button style */
+        .reset-button {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1em;
+            border-radius: 5px;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+        .reset-button:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <section id="logo-space">
+        <div class="logo"></div>
+        <img src="https://see.fontimg.com/api/rf5/lgzd/ZmI2YjU2YjRiMzA5NDg3NGE3NTg0YjU2NzQzMGNkNDQudHRm/UEMgYnVpbGRlclI/namco-regular.png?r=fs&h=80&w=1500&fg=FFFFFF&bg=FFFFFF&tb=1&s=53" width="300" height="25" alt="logo"> 
+    </section>
+</header>
+
+<div class="container">
+    <!-- Store Section -->
+    <div class="store">
+        <h2>Store</h2>
+        <div id="store-items"></div>
+    </div>
+
+    <!-- Inventory Section -->
+    <div class="inventory">
+        <h2>Inventory</h2>
+        <div id="inventory-items"></div>
+        <div class="total-cost">Total Cost: £<span id="total-cost">0</span></div>
+        <!-- Reset Button -->
+        <button class="reset-button" onclick="resetInventoryAndCost()">Reset Inventory & Price</button>
+    </div>
+
+    <!-- Build Area Section -->
+    <div class="build-area">
+        <h2>Build Area</h2>
+        <div class="build-slot" data-slot="cpu">CPU Slot</div>
+        <div class="build-slot" data-slot="gpu">GPU Slot</div>
+        <div class="build-slot" data-slot="ram">RAM Slot</div>
+    </div>
+</div>
+
+<script>
+    // Define the parts available in the store
+    const parts = [
+        { id: 1, name: 'Intel Core i9', type: 'cpu', price: 500 },
+        { id: 2, name: 'Intel Core i7', type: 'cpu', price: 350 },
+        { id: 3, name: 'Intel Core i5', type: 'cpu', price: 200 },
+        { id: 4, name: 'Intel Core i3', type: 'cpu', price: 70 },
+        { id: 5, name: 'AMD Ryzen 3', type: 'cpu', price: 60 },
+        { id: 6, name: 'AMD Ryzen 5', type: 'cpu', price: 200 },
+        { id: 7, name: 'AMD Ryzen 7', type: 'cpu', price: 350 },
+        { id: 8, name: 'AMD Ryzen 9', type: 'cpu', price: 450 },
+        { id: 9, name: 'NVIDIA RTX 2080', type: 'gpu', price: 300 },
+        { id: 10, name: 'NVIDIA RTX 3050', type: 'gpu', price: 150 },
+        { id: 11, name: 'NVIDIA RTX 3060', type: 'gpu', price: 350 },
+        { id: 12, name: 'NVIDIA RTX 3070', type: 'gpu', price: 500 },
+        { id: 13, name: 'NVIDIA RTX 3080', type: 'gpu', price: 700 },
+        { id: 14, name: 'NVIDIA RTX 3090', type: 'gpu', price: 900 },
+        { id: 15, name: 'NVIDIA RTX 4060', type: 'gpu', price: 400 },
+        { id: 16, name: 'NVIDIA RTX 4070', type: 'gpu', price: 700 },
+        { id: 17, name: 'NVIDIA RTX 4080', type: 'gpu', price: 1000 },
+        { id: 18, name: 'NVIDIA RTX 4090', type: 'gpu', price: 2000 },
+        { id: 19, name: 'AMD RX 6500 XT', type: 'gpu', price: 150 },
+        { id: 20, name: 'AMD RX 6600 XT', type: 'gpu', price: 200 },
+        { id: 21, name: 'AMD RX 6700 XT', type: 'gpu', price: 300 },
+        { id: 22, name: 'AMD RX 6800 XT', type: 'gpu', price: 450 },
+        { id: 23, name: 'AMD RX 6900 XT', type: 'gpu', price: 650 },
+        { id: 24, name: 'AMD RX 7600 XT', type: 'gpu', price: 400 },
+        { id: 25, name: 'AMD RX 7700 XT', type: 'gpu', price: 550 },
+        { id: 26, name: 'AMD RX 7800 XT', type: 'gpu', price: 1000 },
+        { id: 27, name: 'AMD RX 7900 XT', type: 'gpu', price: 2000 },
+        { id: 28, name: '16GB DDR4 RAM', type: 'ram', price: 80 },
+        { id: 29, name: '32GB DDR4 RAM', type: 'ram', price: 150 }
+    ];
+
+    let inventory = [];
+    let totalCost = 0;
+
+    // Display the parts in the store
+    const storeItemsContainer = document.getElementById('store-items');
+    const inventoryItemsContainer = document.getElementById('inventory-items');
+    const totalCostElement = document.getElementById('total-cost');
+
+    function displayStoreItems() {
+        storeItemsContainer.innerHTML = '';
+        parts.forEach(part => {
+            const item = document.createElement('div');
+            item.className = 'item';
+            item.textContent = `${part.name} - £${part.price}`;
+            item.onclick = () => buyPart(part);
+            storeItemsContainer.appendChild(item);
+        });
+    }
+
+    function buyPart(part) {
+        if (inventory.length < 50) { // Limiting inventory to 50 parts
+            inventory.push(part);
+            totalCost += part.price; // Add part price to the total cost
+            updateTotalCost();
+            displayInventory();
+        } else {
+            alert("Inventory is full!");
+        }
+    }
+
+    function displayInventory() {
+        inventoryItemsContainer.innerHTML = '';
+        inventory.forEach(part => {
+            const item = document.createElement('div');
+            item.className = 'item';
+            item.textContent = part.name;
+            item.draggable = true;
+            item.ondragstart = (e) => dragStart(e, part);
+            inventoryItemsContainer.appendChild(item);
+        });
+    }
+
+    // Update the total cost display
+    function updateTotalCost() {
+        totalCostElement.textContent = totalCost;
+    }
+
+    // Handle drag and drop functionality for build area
+    const buildSlots = document.querySelectorAll('.build-slot');
+
+    buildSlots.forEach(slot => {
+        slot.ondragover = (e) => e.preventDefault();
+        slot.ondrop = (e) => dropPart(e, slot);
+    });
+
+    function dragStart(event, part) {
+        event.dataTransfer.setData('text/plain', JSON.stringify(part));
+    }
+
+    function dropPart(event, slot) {
+        const part = JSON.parse(event.dataTransfer.getData('text/plain'));
+        if (part.type === slot.getAttribute('data-slot')) {
+            slot.textContent = part.name;
+        } else {
+            alert(`This slot requires a ${slot.getAttribute('data-slot').toUpperCase()} part.`);
+        }
+    }
+
+    // Function to reset inventory and total cost
+    function resetInventoryAndCost() {
+        inventory = [];  // Clear the inventory
+        totalCost = 0;   // Reset the total cost
+        displayInventory();  // Update the inventory display
+        updateTotalCost();   // Update the total cost display
+    }
+
+    // Initial setup
+    displayStoreItems();
+    updateTotalCost();
+</script>
+</body>
+</html>
